@@ -4,41 +4,37 @@ using UnityEngine;
 
 public class SnowmanThrow : MonoBehaviour
 {
-    public GameObject snowBall;
     public float throwDistance;
     public int throwSpeed;
-    private bool justThown = false;
+    public float throwDelay = 0f;
+    public float throwInterval =1f;
 
-    // Start is called before the first frame update
-    void Start()
+    public GameObject player;
+    public bool canThrow = true;
+
+    private void Start()
     {
-        
+        player = GameObject.Find("Player");
+        InvokeRepeating("ThrowSnowball", throwDelay, throwInterval);
     }
 
-    // Update is called once per frame
-    void Update()
+    private void ThrowSnowball()
     {
-       GameObject target = GameObject.Find("Player");
-       
-       float distanceToTarget = Vector3.Distance(target.transform.position, transform.position);
-
-        if (distanceToTarget < throwDistance&&justThown==false)
+        if (player != null && canThrow)
         {
-            justThown = true;
-            GameObject tempSnowBall = Instantiate(snowBall,transform.position,transform.rotation);
-            Rigidbody tempRb = tempSnowBall.GetComponent<Rigidbody>();
-            Vector3 targetDirection =  Vector3.Normalize(target.transform.position-transform.position);
-            
-            //Add a small throw angle
-            targetDirection += new Vector3(0, 0.33f, 0);
-            tempRb.AddForce(targetDirection * throwSpeed);
-            Invoke("ThrowOver", 0.1f);
+            float distanceToPlayer = Vector3.Distance(player.transform.position, transform.position);
+            if (distanceToPlayer < throwDistance)
+            {
+                GameObject snowball = SnowballPool.Instance.GetSnowballFromPool();
+                if (snowball != null)
+                {
+                    snowball.transform.position = transform.position;
+                    snowball.SetActive(true);
+
+                    Vector3 direction = (player.transform.position - transform.position).normalized;
+                    snowball.GetComponent<Rigidbody>().velocity = direction * throwSpeed;
+                }
+            }
         }
-
-    }
-
-    void ThrowOver()
-    {
-        justThown = false;
     }
 }
